@@ -39,8 +39,11 @@ class MLModels:
         fig, ax = plt.subplots()
         ax.plot(self._setting, self.training_accuracy, label="training accuracy")
         ax.plot(self._setting, self.test_accuracy, label="test accuracy")
-        ax.fill_between(self._setting, self.training_accuracy-self.training_std, self.training_accuracy+self.training_std, alpha=0.2)
-        ax.fill_between(self._setting, self.test_accuracy-self.test_std, self.test_accuracy+self.test_std, alpha=0.2)
+        ax.fill_between(self._setting,
+                        self.training_accuracy-self.training_std,
+                        self.training_accuracy+self.training_std, alpha=0.2)
+        ax.fill_between(self._setting, self.test_accuracy-self.test_std,
+                        self.test_accuracy+self.test_std, alpha=0.2)
         ax.set_ylabel("Accuracy")
         ax.set_xlabel(self._setting_name)
         ax.legend()
@@ -85,10 +88,11 @@ class MLModels:
         if feature_coef:
             self.coef = np.mean(feature_coef, axis=0)
 
-    def run_classifier(X, labels, feature_names=None):
+    def run_classifier(X, labels, feature_names=None, C=None,
+                       n_neighbors=None):
         C = [1e-8, 1e-4, 1e-3, 0.1, 0.2, 0.4, 0.75, 1, 1.5, 3, 5, 10, 15, 20,
-             100, 300, 1000, 5000]
-        n_nb = list(range(1, 51))
+             100, 300, 1000, 5000] if C is None else C
+        n_nb = list(range(1, 51)) if n_neighbors is None else n_neighbors
         methods = {
             'KNN': KNNClassifier(n_nb),
             'Logistic Regression (L1)': LogisticRegressor(C, 'l1'),
@@ -120,13 +124,18 @@ class MLModels:
             parameters.append('%s = %s' % (
                 m._setting_name, m._setting[np.argmax(m.test_accuracy)]))
             if m.coef is not None:
-                features.append(feature_names[np.argmax(m.coef)])
+                tp = np.unravel_index(np.argmax(m.coef), m.coef.shape)
+                if tp[0] == 0:
+                    features.append(f'{feature_names[tp[1]]}')
+                else:
+                    features.append(
+                        f'Class {tp[0]}; {feature_names[tp[1]]}')
             else:
                 features.append('None')
 
         return pd.DataFrame(zip(names, accuracies, parameters, features),
                             columns=['Model', 'Accuracy',
-                                     'Parameter', 'Feature'])
+                                     'Best Parameter', 'Top Predictor'])
 
 
 class KNN(MLModels):
@@ -178,7 +187,8 @@ class LinearClassifier(LinearRegressor):
 class LogisticRegressor(LinearClassifier):
     def _init_model(self, reg):
         self.model = partial(LogisticRegression,
-                             solver='liblinear', penalty=reg)
+                             solver='liblinear', penalty=reg,
+                             multi_class='auto')
 
 
 class LinearSVM(LinearClassifier):
