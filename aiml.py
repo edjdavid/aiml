@@ -33,6 +33,7 @@ class MLModels:
         self.training_std = None
         self.test_std = None
         self.coef = None
+        self.classes = None
         self._setting = None
 
     def plot_accuracy(self):
@@ -87,6 +88,7 @@ class MLModels:
         self.test_std = np.std(test_accuracies, axis=0)
         if feature_coef:
             self.coef = np.mean(feature_coef, axis=0)
+            self.classes = clf.classes_
 
     def run_classifier(X, labels, feature_names=None, C=None,
                        n_neighbors=None):
@@ -125,11 +127,11 @@ class MLModels:
                 m._setting_name, m._setting[np.argmax(m.test_accuracy)]))
             if m.coef is not None:
                 tp = np.unravel_index(np.argmax(m.coef), m.coef.shape)
-                if tp[0] == 0:
+                if m.coef.shape[0] == 2:
                     features.append(f'{feature_names[tp[1]]}')
                 else:
                     features.append(
-                        f'Class {tp[0]}; {feature_names[tp[1]]}')
+                        f'Class: {m.classes[tp[0]]}; {feature_names[tp[1]]}')
             else:
                 features.append('None')
 
