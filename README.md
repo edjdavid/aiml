@@ -1,4 +1,4 @@
-## Installtion
+## Install
 ToDo: should be pip installable
 
 1. Copy aiml.py on the same directory as your notebooks  
@@ -9,8 +9,8 @@ import sys
 sys.path.append('/directory/of/aiml.py/')
 ```
 
-## Usage
+## Use
 See demo.ipynb for sample usage
 
-## Contributing
-Send pull requests or request to be added as a member to the project.
+## Contribute
+Feel free to send pull requests or to request to be added as a member to the project.
