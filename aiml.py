@@ -88,8 +88,12 @@ class MLModels:
         self.test_std = np.std(test_accuracies, axis=0)
         if feature_coef:
             self.coef = np.mean(feature_coef, axis=0)
-            self.classes = clf.classes_
+            try:
+                self.classes = clf.classes_
+            except AttributeError:
+                pass
 
+    @staticmethod
     def run_classifier(X, labels, feature_names=None, C=None,
                        n_neighbors=None):
         C = [1e-8, 1e-4, 1e-3, 0.1, 0.2, 0.4, 0.75, 1, 1.5, 3, 5, 10, 15, 20,
@@ -103,6 +107,21 @@ class MLModels:
             'SVC (L2)': LinearSVM(C, 'l2')
         }
 
+        return MLModels.__run_models(methods, X, labels, feature_names)
+
+    @staticmethod
+    def run_regression(X, labels, feature_names=None, alpha=None):
+        alpha = [1e-12, 1e-10, 1e-8, 1e-4, 1e-3,0.1, 0.2,0.4, 0.75,
+                         1, 1.5, 3, 5, 10, 15,  20] if alpha is None else alpha
+        methods = {
+            'Lasso': LassoRegressor(alpha=alpha),
+            'Ridge': RidgeRegressor(alpha=alpha)
+        }
+
+        return MLModels.__run_models(methods, X, labels, feature_names)
+
+    @staticmethod
+    def __run_models(methods, X, labels, feature_names):
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=ConvergenceWarning)
             for k in methods:
@@ -114,6 +133,7 @@ class MLModels:
             feature_names if feature_names is not None else X.columns)))
         return methods
 
+    @staticmethod
     def summarize(methods, feature_names=None):
         names = []
         accuracies = []
@@ -126,8 +146,14 @@ class MLModels:
             parameters.append('%s = %s' % (
                 m._setting_name, m._setting[np.argmax(m.test_accuracy)]))
             if m.coef is not None:
-                tp = np.unravel_index(np.argmax(m.coef), m.coef.shape)
-                if m.coef.shape[0] == 2:
+                # regressors doesn't have classes
+                if m.classes is None:
+                    features.append(
+                        f'{feature_names[np.argmax(np.abs(m.coef))]}')
+                    continue
+
+                tp = np.unravel_index(np.argmax(np.abs(m.coef)), m.coef.shape)
+                if m.coef.shape[0] == 1:
                     features.append(f'{feature_names[tp[1]]}')
                 else:
                     features.append(
