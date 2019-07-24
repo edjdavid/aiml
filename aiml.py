@@ -57,10 +57,13 @@ class MLModels:
         if self.pred_var_setting is not None:
             self._setting = sorted(list(set(self._setting)
                                         .union({self.pred_var_setting})))
+
+        rs = (np.random.RandomState(seed=self.random_state) if
+              self.random_state else None)
         with tqdm(total=self.n_trials*len(self._setting)) as pb:
             for i in range(self.n_trials):
                 X_train, X_test, y_train, y_test = train_test_split(
-                    X, y, random_state=self.random_state)
+                    X, y, random_state=rs)
                 if scaler is not None:
                     # scale using the training set
                     scaler_inst = scaler.fit(X_train)
