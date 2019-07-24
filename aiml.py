@@ -50,7 +50,7 @@ class MLModels:
         ax.legend()
         return ax
 
-    def train_test(self, X, y):
+    def train_test(self, X, y, scaler=None):
         train_accuracies = []
         test_accuracies = []
         if self.pred_var_setting is not None:
@@ -60,6 +60,10 @@ class MLModels:
             for i in range(self.n_trials):
                 X_train, X_test, y_train, y_test = train_test_split(
                     X, y, random_state=self.random_state)
+                if scaler is not None:
+                    scaler_inst = scaler.fit(X_train)
+                    X_train = scaler_inst.transform(X_train)
+                    X_test = scaler_inst.transform(X_test)
                 pb.set_description(f'Iter: {i + 1}')
                 training_accuracy = []
                 test_accuracy = []
@@ -95,7 +99,7 @@ class MLModels:
 
     @staticmethod
     def run_classifier(X, labels, feature_names=None, C=None,
-                       n_neighbors=None):
+                       n_neighbors=None, scaler=None):
         C = [1e-8, 1e-4, 1e-3, 0.1, 0.2, 0.4, 0.75, 1, 1.5, 3, 5, 10, 15, 20,
              100, 300, 1000, 5000] if C is None else C
         n_nb = list(range(1, 51)) if n_neighbors is None else n_neighbors
@@ -103,14 +107,15 @@ class MLModels:
             'KNN': KNNClassifier(n_nb),
             'Logistic Regression (L1)': LogisticRegressor(C, 'l1'),
             'Logistic Regression (L2)': LogisticRegressor(C, 'l2'),
-            'SVC (L1)': LinearSVM(C, 'l1'),
-            'SVC (L2)': LinearSVM(C, 'l2')
+            'Linear SVM (L1)': LinearSVM(C, 'l1'),
+            'Linear SVM (L2)': LinearSVM(C, 'l2')
         }
 
-        return MLModels.__run_models(methods, X, labels, feature_names)
+        return MLModels.__run_models(methods, X, labels, feature_names,
+                                     scaler=scaler)
 
     @staticmethod
-    def run_regression(X, labels, feature_names=None, alpha=None):
+    def run_regression(X, labels, feature_names=None, alpha=None, scaler=None):
         alpha = [1e-12, 1e-10, 1e-8, 1e-4, 1e-3,0.1, 0.2,0.4, 0.75,
                          1, 1.5, 3, 5, 10, 15,  20] if alpha is None else alpha
         methods = {
@@ -118,16 +123,17 @@ class MLModels:
             'Ridge': RidgeRegressor(alpha=alpha)
         }
 
-        return MLModels.__run_models(methods, X, labels, feature_names)
+        return MLModels.__run_models(methods, X, labels, feature_names,
+                                     scaler=scaler)
 
     @staticmethod
-    def __run_models(methods, X, labels, feature_names):
+    def __run_models(methods, X, labels, feature_names, scaler=None):
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=ConvergenceWarning)
             for k in methods:
                 print(k)
                 m = methods[k]
-                m.train_test(X, labels)
+                m.train_test(X, labels, scaler=scaler)
 
         print(MLModels.summarize(methods, (
             feature_names if feature_names is not None else X.columns)))
