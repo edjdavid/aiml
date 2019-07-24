@@ -38,7 +38,8 @@ class MLModels:
 
     def plot_accuracy(self):
         fig, ax = plt.subplots()
-        ax.plot(self._setting, self.training_accuracy, label="training accuracy")
+        ax.plot(self._setting, self.training_accuracy,
+                label="training accuracy")
         ax.plot(self._setting, self.test_accuracy, label="test accuracy")
         ax.fill_between(self._setting,
                         self.training_accuracy-self.training_std,
@@ -61,8 +62,10 @@ class MLModels:
                 X_train, X_test, y_train, y_test = train_test_split(
                     X, y, random_state=self.random_state)
                 if scaler is not None:
+                    # scale using the training set
                     scaler_inst = scaler.fit(X_train)
                     X_train = scaler_inst.transform(X_train)
+                    # apply the training set scale to the test set
                     X_test = scaler_inst.transform(X_test)
                 pb.set_description(f'Iter: {i + 1}')
                 training_accuracy = []
@@ -140,7 +143,7 @@ class MLModels:
         return methods
 
     @staticmethod
-    def summarize(methods, feature_names=None):
+    def summarize(methods, feature_names):
         names = []
         accuracies = []
         parameters = []
@@ -206,11 +209,12 @@ class RidgeRegressor(LinearRegressor):
     model = Ridge
 
 
-class LinearClassifier(LinearRegressor):
+class LinearClassifier(MLModels):
     model = None
     _setting_name = 'C'
 
     def __init__(self, C, reg='l2'):
+        super().__init__()
         self._setting = C
         self._init_model(reg)
 
