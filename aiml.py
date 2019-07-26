@@ -20,6 +20,7 @@ from sklearn.exceptions import ConvergenceWarning
 class MLModels:
     # safe to change
     n_trials = 50
+    test_size = 0.75
     random_state = None
     pred_var_setting = 0.01
 
@@ -63,7 +64,7 @@ class MLModels:
         with tqdm(total=self.n_trials*len(self._setting)) as pb:
             for i in range(self.n_trials):
                 X_train, X_test, y_train, y_test = train_test_split(
-                    X, y, random_state=rs)
+                    X, y, test_size=self.test_size, random_state=rs)
                 if scaler is not None:
                     # scale using the training set
                     scaler_inst = scaler.fit(X_train)
