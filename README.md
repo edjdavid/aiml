@@ -2,7 +2,7 @@
 ```bash
 git clone git@gitlab.datascience.aim.edu:edavid/aiml.git
 cd aiml
-pip install -e .
+pip install -e . --user
 ```
 
 ## Update
