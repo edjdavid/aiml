@@ -1,12 +1,14 @@
 ## Install
-ToDo: should be pip installable
+```bash
+git clone git@gitlab.datascience.aim.edu:edavid/aiml.git
+cd aiml
+pip install -e --user .
+```
 
-1. Copy aiml.py on the same directory as your notebooks  
-OR  
-2. Add the following line to your notebooks
-```python
-import sys
-sys.path.append('/directory/of/aiml.py/')
+## Update
+```bash
+cd aiml
+git pull
 ```
 
 ## Use
