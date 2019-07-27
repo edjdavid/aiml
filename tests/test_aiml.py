@@ -3,11 +3,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.datasets import load_breast_cancer
-
-import sys
-sys.path.append('../')
-
-from aiml import KNNClassifier  # nopep8
+from aiml.models import KNNClassifier
 
 cancer = load_breast_cancer()
 
