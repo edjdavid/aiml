@@ -118,8 +118,23 @@ class MLModels:
             'Linear SVM (L2)': LinearSVM(C, 'l2')
         }
 
+        MLModels.plot_pcc(labels)
+        plt.show()
         return MLModels.__run_models(methods, X, labels, feature_names,
                                      scaler=scaler)
+
+    @staticmethod
+    def plot_pcc(labels):
+        label, counts = np.unique(labels, return_counts=True)
+        N = np.sum(counts)
+        pcc = np.sum([(n/N)**2 for n in counts])
+        fig, ax = plt.subplots()
+        ax.bar(range(len(counts)), counts, tick_label=label)
+        ax.set_title('PCC = %.2f (%.2f)' % (pcc, pcc*1.25))
+        ax.set_xlabel('labels')
+        ax.set_ylabel('frequency')
+
+        return ax
 
     @staticmethod
     def run_regression(X, labels, feature_names=None, alpha=None, scaler=None):
