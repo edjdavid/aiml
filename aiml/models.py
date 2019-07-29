@@ -3,7 +3,6 @@ import pandas as pd
 import warnings
 
 from tqdm.autonotebook import tqdm
-from functools import partial
 
 # plotting
 import matplotlib.pyplot as plt
@@ -71,13 +70,14 @@ class MLModels:
                     X_train = scaler_inst.transform(X_train)
                     # apply the training set scale to the test set
                     X_test = scaler_inst.transform(X_test)
-                pb.set_description(f'Iter: {i + 1}')
+                pb.set_description(f'Trial: {i + 1}')
                 training_accuracy = []
                 test_accuracy = []
                 feature_coef = []
                 for s in self._setting:
                     # build the model
-                    clf = self.model(**{self._setting_name: s})
+                    self.model.__setattr__(self._setting_name, s)
+                    clf = self.model
                     clf.fit(X_train, y_train)
                     # record training set accuracy
                     training_accuracy.append(clf.score(X_train, y_train))
@@ -189,11 +189,11 @@ class KNN(MLModels):
 
 
 class KNNClassifier(KNN):
-    model = KNeighborsClassifier
+    model = KNeighborsClassifier()
 
 
 class KNNRegressor(KNN):
-    model = partial(KNeighborsRegressor, algorithm='kd_tree')
+    model = KNeighborsRegressor(algorithm='kd_tree')
 
 
 class LinearRegressor(MLModels):
@@ -206,11 +206,11 @@ class LinearRegressor(MLModels):
 
 
 class LassoRegressor(LinearRegressor):
-    model = partial(Lasso, max_iter=10000)
+    model = Lasso(max_iter=10000)
 
 
 class RidgeRegressor(LinearRegressor):
-    model = Ridge
+    model = Ridge()
 
 
 class LinearClassifier(MLModels):
@@ -228,12 +228,11 @@ class LinearClassifier(MLModels):
 
 class LogisticRegressor(LinearClassifier):
     def _init_model(self, reg):
-        self.model = partial(LogisticRegression,
-                             solver='liblinear', penalty=reg,
-                             multi_class='auto')
+        self.model = LogisticRegression(solver='liblinear', penalty=reg,
+                                        multi_class='auto')
 
 
 class LinearSVM(LinearClassifier):
     def _init_model(self, reg):
-        self.model = partial(LinearSVC, loss='squared_hinge',
-                             dual=False, penalty=reg)
+        self.model = LinearSVC(loss='squared_hinge',
+                               dual=False, penalty=reg)
