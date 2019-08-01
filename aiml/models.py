@@ -111,7 +111,7 @@ class MLModels:
              100, 300, 1000, 5000] if C is None else C
         n_nb = list(range(1, 51)) if n_neighbors is None else n_neighbors
         methods = {
-            'KNN': KNNClassifier(n_nb),
+            'KNN Classifier': KNNClassifier(n_nb),
             'Logistic Regression (L1)': LogisticRegressor(C, 'l1'),
             'Logistic Regression (L2)': LogisticRegressor(C, 'l2'),
             'Linear SVM (L1)': LinearSVM(C, 'l1'),
@@ -137,10 +137,12 @@ class MLModels:
         return ax
 
     @staticmethod
-    def run_regression(X, labels, feature_names=None, alpha=None, scaler=None):
+    def run_regression(X, labels, feature_names=None, alpha=None, n_neighbors=None, scaler=None):
         alpha = [1e-12, 1e-10, 1e-8, 1e-4, 1e-3,0.1, 0.2,0.4, 0.75,
                          1, 1.5, 3, 5, 10, 15,  20] if alpha is None else alpha
+        n_nb = list(range(1, 51)) if n_neighbors is None else n_neighbors
         methods = {
+            'KNN Regression': KNNRegressor(n_nb),
             'Lasso': LassoRegressor(alpha=alpha),
             'Ridge': RidgeRegressor(alpha=alpha)
         }
