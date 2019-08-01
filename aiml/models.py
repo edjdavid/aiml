@@ -173,9 +173,50 @@ class MLModels:
 
     @staticmethod
     def run_regression(X, labels, feature_names=None, alpha=None, n_neighbors=None, scaler=None):
+        """
+        Runs the specified algorithms on the data provided.
+        
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}
+            Training data
+        labels : array-like, shape = [n_samples]
+            Target vector relative to X
+        feature_names : 
+        C : list
+            List of values of C for Logistic Regression and SVC
+            default : 1e-8, 1e-4, 1e-3, 0.1, 0.2, 0.4, 0.75, 
+                     1, 1.5, 3, 5, 10, 15, 20, 100, 300, 1000, 5000
+        n_neighbors : list
+            List of values of number of neighbors for KNN
+            default : 1 to 50      
+        scaler : object
+            Scaling method to be applied to X
+            default : None
+        algorithm : list
+            default : 'all'
+            options : 'knn', 'linear' or 'linear regression'
+            
+        Returns
+        -------
+        Dictionary of model objects
+        """
         alpha = [1e-12, 1e-10, 1e-8, 1e-4, 1e-3,0.1, 0.2,0.4, 0.75,
                          1, 1.5, 3, 5, 10, 15,  20] if alpha is None else alpha
         n_nb = list(range(1, 51)) if n_neighbors is None else n_neighbors
+
+        methods = {}
+        for algo in algorithm:
+            algo = algo.lower()
+            if algo == 'knn' or algo == 'all':
+                methods['KNN'] = KNNRegressor(n_nb)
+            elif algo == 'linear' or algo == 'linear regression' or algo == 'all':
+                methods['Linear Regression (L1)'] = LassoRegressor(alpha=alpha)
+                methods['Linear Regression (L2)'] = RidgeRegressor(alpha=alpha)
+	    else:   
+		print(f'method {algo} not in options')
+
+
         methods = {
             'KNN Regression': KNNRegressor(n_nb),
             'Lasso': LassoRegressor(alpha=alpha),
