@@ -14,6 +14,9 @@ from sklearn.linear_model import Ridge, Lasso, LogisticRegression
 from sklearn.svm import LinearSVC
 from sklearn.exceptions import ConvergenceWarning
 
+# this shouldn't be a hard dependency
+from IPython.core.display import display
+
 
 # Note: Someone please write the documentation ;)
 class MLModels:
@@ -40,14 +43,17 @@ class MLModels:
     --------
     plot_accuracy : Plots and returns model train and test accuracies
     train_test : Calculates the training and testing accuracy of the model
-    run_classifier : Runs the specified classifier algorithms on the data provided
-    plot_pcc : Calculates the Proportion Chance Criteria, Plots a bar chart of all classes
-    run_regression : Runs the specified regression algorithms on the data provided
-    summarize : Displays in a dataframe the best performance (highest accuracy) of the methods
+    run_classifier : Runs the specified classifier algorithms
+     on the data provided
+    plot_pcc : Calculates the Proportion Chance Criteria,
+     Plots a bar chart of all classes
+    run_regression : Runs the specified regression algorithms
+     on the data provided
+    summarize : Displays in a dataframe the best performance
+     (highest accuracy) of the methods
     
     """
 
-        
     # safe to change
     n_trials = 30
     test_size = 0.75
@@ -87,7 +93,10 @@ class MLModels:
 
     def train_test(self, X, y, scaler=None):
         """
-        Calculates the training and testing accuracy of the model for a given number of iterations (n_trials) and parameter (setting; for KNN: n_neighbors, for logistic regression and SVC: C)
+        Calculates the training and testing accuracy of the model.
+
+        Calculate mean accuracy for `self.n_trials` using the given parameter
+        `self._settings`.
         
         Parameters
         ----------
@@ -155,7 +164,7 @@ class MLModels:
     def run_classifier(X, labels, feature_names=None, C=None,
                        n_neighbors=None, scaler=None, algorithm=['all']):
         """
-        Runs the specified algorithms on the data provided.
+        Run classifier algorithms on the data provided.
         
         Parameters
         ----------
@@ -177,7 +186,8 @@ class MLModels:
             default : None
         algorithm : list
             default : 'all'
-            options : 'knn', 'logistic' or 'logistic regression', 'svc' or 'svm'
+            options : 'knn', 'logistic' or 'logistic regression',
+             'svc' or 'svm'
             
         Returns
         -------
@@ -194,13 +204,17 @@ class MLModels:
                 algo = algo.lower()
                 if algo == 'knn' or algo == 'all':
                     methods['KNN'] = KNNClassifier(n_nb)
-                if algo == 'logistic' or algo == 'logistic regression' or algo == 'all':
-                    methods['Logistic Regression (L1)'] = LogisticRegressor(C, 'l1')
-                    methods['Logistic Regression (L2)'] = LogisticRegressor(C, 'l2')
+                if (algo == 'logistic' or algo == 'logistic regression' or
+                        algo == 'all'):
+                    methods['Logistic Regression (L1)'] = LogisticRegressor(
+                        C, 'l1')
+                    methods['Logistic Regression (L2)'] = LogisticRegressor(
+                        C, 'l2')
                 if algo == 'svc' or algo == 'svm' or algo == 'all':
                     methods['SVC (L1)'] = LinearSVM(C, 'l1')
                     methods['SVC (L2)'] = LinearSVM(C, 'l2')
-                if algo not in ['all', 'knn', 'logistic', 'logistic regression', 'svc', 'svm']:
+                if algo not in ['all', 'knn', 'logistic',
+                                'logistic regression', 'svc', 'svm']:
                     print(f'Algorithm {algo} not in options')
 
             MLModels.plot_pcc(labels)
@@ -213,7 +227,9 @@ class MLModels:
     @staticmethod
     def plot_pcc(labels):
         """
-        Calculates and prints the Proportion Chance Criterion. Plots the frequency of each class as a bar chart.
+        Calculates and prints the Proportion Chance Criterion.
+
+        Plots the frequency of each class as a bar chart.
     
         Parameters
         ----------
@@ -262,8 +278,8 @@ class MLModels:
         -------
         Dictionary of model objects
         """
-        alpha = [1e-12, 1e-10, 1e-8, 1e-4, 1e-3,0.1, 0.2,0.4, 0.75,
-                         1, 1.5, 3, 5, 10, 15,  20] if alpha is None else alpha
+        alpha = [1e-12, 1e-10, 1e-8, 1e-4, 1e-3,0.1, 0.2, 0.4, 0.75,
+                 1, 1.5, 3, 5, 10, 15,  20] if alpha is None else alpha
         n_nb = list(range(1, 51)) if n_neighbors is None else n_neighbors
 
         methods = {}
@@ -273,9 +289,12 @@ class MLModels:
                 algo = algo.lower()
                 if algo == 'knn' or algo == 'all':
                     methods['KNN'] = KNNRegressor(n_nb)
-                if algo == 'linear' or algo == 'linear regression' or algo == 'all':
-                    methods['Linear Regression (L1)'] = LassoRegressor(alpha=alpha)
-                    methods['Linear Regression (L2)'] = RidgeRegressor(alpha=alpha)
+                if (algo == 'linear' or algo == 'linear regression' or algo
+                        == 'all'):
+                    methods['Linear Regression (L1)'] = LassoRegressor(
+                        alpha=alpha)
+                    methods['Linear Regression (L2)'] = RidgeRegressor(
+                        alpha=alpha)
                 if algo not in ['all', 'knn', 'linear', 'linear regression']:
                     print(f'method {algo} not in options')
 
@@ -287,8 +306,8 @@ class MLModels:
     @staticmethod
     def __run_models(methods, X, labels, feature_names, scaler=None):
         """
-        Displays in a dataframe the best performance (highest accuracy) of the methods specified along with the best parameter and top predictor
-        
+        Perform the models on X and return a summary.
+
         Parameters
         ----------
         methods: dictionary
@@ -321,8 +340,8 @@ class MLModels:
     @staticmethod
     def summarize(methods, feature_names):
         """
-        Displays in a dataframe the best performance (highest accuracy) of the methods specified along with the best parameter and top predictor
-        
+        Displays the best performance (highest accuracy) of the methods
+
         Parameters
         ----------
         methods: dictionary
@@ -332,7 +351,8 @@ class MLModels:
             
         Returns
         -------
-        Dataframe of the best performance (highest accuracy) of the methods specified along with the best parameter and top predictor     
+        Dataframe of the best performance (highest accuracy) of the methods
+        specified along with the best parameter and top predictor
         """        
         names = []
         accuracies = []
