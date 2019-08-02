@@ -172,7 +172,7 @@ class MLModels:
         return ax
 
     @staticmethod
-    def run_regression(X, labels, feature_names=None, alpha=None, n_neighbors=None, scaler=None):
+    def run_regression(X, labels, feature_names=None, alpha=None, n_neighbors=None, scaler=None, algorithm='all'):
         """
         Runs the specified algorithms on the data provided.
         
@@ -213,9 +213,8 @@ class MLModels:
             elif algo == 'linear' or algo == 'linear regression' or algo == 'all':
                 methods['Linear Regression (L1)'] = LassoRegressor(alpha=alpha)
                 methods['Linear Regression (L2)'] = RidgeRegressor(alpha=alpha)
-	    else:   
-		print(f'method {algo} not in options')
-
+            else:
+                print(f'method {algo} not in options')
 
         methods = {
             'KNN Regression': KNNRegressor(n_nb),
