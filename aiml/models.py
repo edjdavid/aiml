@@ -17,8 +17,39 @@ from sklearn.exceptions import ConvergenceWarning
 
 # Note: Someone please write the documentation ;)
 class MLModels:
+    """
+    Creates a class MLModels. 
+
+    Parameters
+    ----------
+    
+    n_trials : int
+        default : 30
+        
+    test_size : float
+        default : 0.25
+        
+    random_state: int
+        default : None
+        
+    pred_var_setting: float
+        default : 0.01
+        
+        
+    Methods
+    --------
+    plot_accuracy : Plots and returns model train and test accuracies
+    train_test : Calculates the training and testing accuracy of the model
+    run_classifier : Runs the specified classifier algorithms on the data provided
+    plot_pcc : Calculates the Proportion Chance Criteria, Plots a bar chart of all classes
+    run_regression : Runs the specified regression algorithms on the data provided
+    summarize : Displays in a dataframe the best performance (highest accuracy) of the methods
+    
+    """
+
+        
     # safe to change
-    n_trials = 50
+    n_trials = 30
     test_size = 0.75
     random_state = None
     pred_var_setting = 0.01
@@ -37,6 +68,9 @@ class MLModels:
         self._setting = None
 
     def plot_accuracy(self):
+        """
+        Plots the train and test accuracy +- 1 standard deviation of the model.
+        """
         fig, ax = plt.subplots()
         ax.plot(self._setting, self.training_accuracy,
                 label="training accuracy")
@@ -52,6 +86,19 @@ class MLModels:
         return ax
 
     def train_test(self, X, y, scaler=None):
+        """
+        Calculates the training and testing accuracy of the model for a given number of iterations (n_trials) and parameter (setting; for KNN: n_neighbors, for logistic regression and SVC: C)
+        
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape (n_samples, n_features)
+            Training data
+        y : array-like, shape = [n_samples]
+            Target vector relative to X    
+        scaler : object
+            Scaling method to be applied to X
+            default : None
+        """
         train_accuracies = []
         test_accuracies = []
         if self.pred_var_setting is not None:
@@ -106,17 +153,18 @@ class MLModels:
 
     @staticmethod
     def run_classifier(X, labels, feature_names=None, C=None,
-                       n_neighbors=None, scaler=None, algorithm='all'):
-        '''
+                       n_neighbors=None, scaler=None, algorithm=['all']):
+        """
         Runs the specified algorithms on the data provided.
         
         Parameters
         ----------
-        X : {array-like, sparse matrix}
+        X : {array-like, sparse matrix}, shape (n_samples, n_features)
             Training data
         labels : array-like, shape = [n_samples]
             Target vector relative to X
-        feature_names : 
+        feature_names : list
+            List of column names to include in the training of the model
         C : list
             List of values of C for Logistic Regression and SVC
             default : 1e-8, 1e-4, 1e-3, 0.1, 0.2, 0.4, 0.75, 
@@ -129,37 +177,49 @@ class MLModels:
             default : None
         algorithm : list
             default : 'all'
-            options : KNN, Logistic or Logistic Regression, SVC or SVM
+            options : 'knn', 'logistic' or 'logistic regression', 'svc' or 'svm'
             
         Returns
         -------
-        Dictionary of model objects
-        '''
+        Dictionary of fitted classifiers
+        """
         C = [1e-8, 1e-4, 1e-3, 0.1, 0.2, 0.4, 0.75, 1, 1.5, 3, 5, 10, 15, 20,
              100, 300, 1000, 5000] if C is None else C
         n_nb = list(range(1, 51)) if n_neighbors is None else n_neighbors
         
         methods = {}
-        for algo in algorithm:
-            algo = algo.lower()
-            if algo == 'knn' or algo == 'all':
-                methods['KNN'] = KNNClassifier(n_nb)
-            elif algo == 'logistic' or algo == 'logistic regression' or algo == 'all':
-                methods['Logistic Regression (L1)'] = LogisticRegressor(C, 'l1')
-                methods['Logistic Regression (L2)'] = LogisticRegressor(C, 'l2')
-            elif algo == 'svc' or algo == 'svm' or algo == 'all':
-                methods['SVC (L1)'] = LinearSVM(C, 'l1')
-                methods['SVC (L2)'] = LinearSVM(C, 'l2')
-            else:
-                print(f'method {algo} not in options')
+        
+        if isinstance(algorithm, list):        
+            for algo in algorithm:
+                algo = algo.lower()
+                if algo == 'knn' or algo == 'all':
+                    methods['KNN'] = KNNClassifier(n_nb)
+                if algo == 'logistic' or algo == 'logistic regression' or algo == 'all':
+                    methods['Logistic Regression (L1)'] = LogisticRegressor(C, 'l1')
+                    methods['Logistic Regression (L2)'] = LogisticRegressor(C, 'l2')
+                if algo == 'svc' or algo == 'svm' or algo == 'all':
+                    methods['SVC (L1)'] = LinearSVM(C, 'l1')
+                    methods['SVC (L2)'] = LinearSVM(C, 'l2')
+                if algo not in ['all', 'knn', 'logistic', 'logistic regression', 'svc', 'svm']:
+                    print(f'Algorithm {algo} not in options')
 
-        MLModels.plot_pcc(labels)
-        plt.show()
-        return MLModels.__run_models(methods, X, labels, feature_names,
-                                     scaler=scaler)
-
+            MLModels.plot_pcc(labels)
+            plt.show()
+            return MLModels.__run_models(methods, X, labels, feature_names,
+                                         scaler=scaler)
+        else:
+            print('Algorithms should be in a list')
+        
     @staticmethod
     def plot_pcc(labels):
+        """
+        Calculates and prints the Proportion Chance Criterion. Plots the frequency of each class as a bar chart.
+    
+        Parameters
+        ----------
+        labels : array-like, shape = [n_samples]
+            Target vector relative to X
+        """
         label, counts = np.unique(labels, return_counts=True)
         N = np.sum(counts)
         pcc = np.sum([(n/N)**2 for n in counts])
@@ -172,7 +232,8 @@ class MLModels:
         return ax
 
     @staticmethod
-    def run_regression(X, labels, feature_names=None, alpha=None, n_neighbors=None, scaler=None, algorithm='all'):
+    def run_regression(X, labels, feature_names=None, alpha=None, 
+                       n_neighbors=None, scaler=None, algorithm=['all']):
         """
         Runs the specified algorithms on the data provided.
         
@@ -206,27 +267,46 @@ class MLModels:
         n_nb = list(range(1, 51)) if n_neighbors is None else n_neighbors
 
         methods = {}
-        for algo in algorithm:
-            algo = algo.lower()
-            if algo == 'knn' or algo == 'all':
-                methods['KNN'] = KNNRegressor(n_nb)
-            elif algo == 'linear' or algo == 'linear regression' or algo == 'all':
-                methods['Linear Regression (L1)'] = LassoRegressor(alpha=alpha)
-                methods['Linear Regression (L2)'] = RidgeRegressor(alpha=alpha)
-            else:
-                print(f'method {algo} not in options')
+        
+        if isinstance(algorithm, list):        
+            for algo in algorithm:
+                algo = algo.lower()
+                if algo == 'knn' or algo == 'all':
+                    methods['KNN'] = KNNRegressor(n_nb)
+                elif algo == 'linear' or algo == 'linear regression' or algo == 'all':
+                    methods['Linear Regression (L1)'] = LassoRegressor(alpha=alpha)
+                    methods['Linear Regression (L2)'] = RidgeRegressor(alpha=alpha)
+                else:
+                    print(f'method {algo} not in options')
 
-        methods = {
-            'KNN Regression': KNNRegressor(n_nb),
-            'Lasso': LassoRegressor(alpha=alpha),
-            'Ridge': RidgeRegressor(alpha=alpha)
-        }
-
-        return MLModels.__run_models(methods, X, labels, feature_names,
-                                     scaler=scaler)
-
+            return MLModels.__run_models(methods, X, labels, feature_names,
+                                         scaler=scaler)
+        else:
+            print('Algorithms should be in a list')
+            
     @staticmethod
     def __run_models(methods, X, labels, feature_names, scaler=None):
+        """
+        Displays in a dataframe the best performance (highest accuracy) of the methods specified along with the best parameter and top predictor
+        
+        Parameters
+        ----------
+        methods: dictionary
+            Dictionary of objects (models)
+        X : {array-like, sparse matrix}, shape (n_samples, n_features)
+            Training data
+        labels : array-like, shape = [n_samples]
+            Target vector relative to X
+        feature_names : list
+            List of column names to include in the training of the model     
+        scaler : object
+            Scaling method to be applied to X
+            default : None
+            
+        Returns
+        -------
+        Dictionary of fitted classifiers       
+        """
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=ConvergenceWarning)
             for k in methods:
@@ -240,6 +320,20 @@ class MLModels:
 
     @staticmethod
     def summarize(methods, feature_names):
+        """
+        Displays in a dataframe the best performance (highest accuracy) of the methods specified along with the best parameter and top predictor
+        
+        Parameters
+        ----------
+        methods: dictionary
+            Dictionary of objects (models)
+        feature_names : list
+            List of column names to include in the training of the model     
+            
+        Returns
+        -------
+        Dataframe of the best performance (highest accuracy) of the methods specified along with the best parameter and top predictor     
+        """        
         names = []
         accuracies = []
         parameters = []
