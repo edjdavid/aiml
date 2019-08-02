@@ -273,10 +273,10 @@ class MLModels:
                 algo = algo.lower()
                 if algo == 'knn' or algo == 'all':
                     methods['KNN'] = KNNRegressor(n_nb)
-                elif algo == 'linear' or algo == 'linear regression' or algo == 'all':
+                if algo == 'linear' or algo == 'linear regression' or algo == 'all':
                     methods['Linear Regression (L1)'] = LassoRegressor(alpha=alpha)
                     methods['Linear Regression (L2)'] = RidgeRegressor(alpha=alpha)
-                else:
+                if algo not in ['all', 'knn', 'linear', 'linear regression']:
                     print(f'method {algo} not in options')
 
             return MLModels.__run_models(methods, X, labels, feature_names,
