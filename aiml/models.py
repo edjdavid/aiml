@@ -27,7 +27,7 @@ class MLModels:
     ----------
     
     n_trials : int
-        default : 30
+        default : 50
         
     test_size : float
         default : 0.25
@@ -55,8 +55,8 @@ class MLModels:
     """
 
     # safe to change
-    n_trials = 30
-    test_size = 0.75
+    n_trials = 50
+    test_size = 0.25
     random_state = None
     pred_var_setting = 0.01
 
@@ -210,8 +210,20 @@ class MLModels:
                         C, 'l1')
                     methods['Logistic Regression (L2)'] = LogisticRegressor(
                         C, 'l2')
+                if (algo == 'logistic1' or algo == 'logistic regression1' or
+                        algo == 'all'):
+                    methods['Logistic Regression (L1)'] = LogisticRegressor(
+                        C, 'l1')
+                if (algo == 'logistic2' or algo == 'logistic regression2' or
+                        algo == 'all'):
+                    methods['Logistic Regression (L2)'] = LogisticRegressor(
+                        C, 'l2')
                 if algo == 'svc' or algo == 'svm' or algo == 'all':
                     methods['SVC (L1)'] = LinearSVM(C, 'l1')
+                    methods['SVC (L2)'] = LinearSVM(C, 'l2')
+                if algo == 'svc1' or algo == 'svm1' or algo == 'all':
+                    methods['SVC (L1)'] = LinearSVM(C, 'l1')
+                if algo == 'svc2' or algo == 'svm2' or algo == 'all':
                     methods['SVC (L2)'] = LinearSVM(C, 'l2')
                 if algo not in ['all', 'knn', 'logistic',
                                 'logistic regression', 'svc', 'svm']:
@@ -295,6 +307,14 @@ class MLModels:
                         alpha=alpha)
                     methods['Linear Regression (L2)'] = RidgeRegressor(
                         alpha=alpha)
+                if (algo == 'linear1' or algo == 'linear regression1' or algo
+                        == 'all'):
+                    methods['Linear Regression (L1)'] = LassoRegressor(
+                        alpha=alpha)
+                if (algo == 'linear2' or algo == 'linear regression2' or algo
+                        == 'all'):
+                    methods['Linear Regression (L2)'] = RidgeRegressor(
+                        alpha=alpha)
                 if algo not in ['all', 'knn', 'linear', 'linear regression']:
                     print(f'method {algo} not in options')
 
@@ -358,6 +378,7 @@ class MLModels:
         accuracies = []
         parameters = []
         features = []
+
         for k in methods:
             m = methods[k]
             names.append(k)
