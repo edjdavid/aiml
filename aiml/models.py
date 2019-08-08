@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import warnings
 
+from collections.abc import Sequence
 from tqdm.autonotebook import tqdm
 
 # plotting
@@ -11,7 +12,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 from sklearn.linear_model import Ridge, Lasso, LogisticRegression
-from sklearn.svm import LinearSVC
+from sklearn.svm import LinearSVC, SVC
 from sklearn.exceptions import ConvergenceWarning
 
 # this shouldn't be a hard dependency
@@ -188,7 +189,7 @@ class MLModels:
             to a pre-defined list.
             default : 'all'
             str options : 'knn', 'logistic' or 'lr',
-             'svc' or 'svm'
+             'svc' or 'svm', 'nsvc' or 'nsvm'
             
         Returns
         -------
@@ -214,6 +215,10 @@ class MLModels:
             if algo.intersection({'svc', 'svm'}):
                 methods['Linear SVM (L1)'] = LinearSVM(C, 'l1')
                 methods['Linear SVM (L2)'] = LinearSVM(C, 'l2')
+
+            if algo.intersection({'svc', 'svm'}):
+                methods['Polynomial SVM'] = PolynomialSVM({'C': C})
+                methods['RBF SVM'] = RadialBasisSVM({'gamma': C})
 
         if not methods:
             warnings.warn('methods is not a valid value')
@@ -387,7 +392,7 @@ class MLModels:
                     features.append(
                         f'Class: {m.classes[tp[0]]}; {feature_names[tp[1]]}')
             else:
-                features.append('None')
+                features.append('N/A')
 
         return pd.DataFrame(zip(names, accuracies, parameters, features),
                             columns=['Model', 'Accuracy',
@@ -451,3 +456,56 @@ class LinearSVM(LinearClassifier):
     def _init_model(self, reg):
         self.model = LinearSVC(loss='squared_hinge',
                                dual=False, penalty=reg)
+
+
+class NonLinearClassifier(MLModels):
+    def __init__(self, hyperparameters):
+        """
+
+        :param hyperparameters: dict
+        Dictionary of hyperparameter values. One of the values should be a
+        list indicating the hyperparameter to scan.
+        """
+        super().__init__()
+        hp_lst = [k for k, v in hyperparameters.items() if isinstance(v,
+                                                                   Sequence)]
+        assert (len(hp_lst) == 1), 'Hyperparameters should contain only 1 list'
+        self._setting_name = hp_lst[0]
+        self._setting = hyperparameters[self._setting_name]
+        del hyperparameters[self._setting_name]
+        self._init_model(hyperparameters)
+
+    def _init_model(self, hyperparameters):
+        raise NotImplementedError()
+
+
+class NonLinearSVM(NonLinearClassifier):
+    def _init_model(self, hyperparameters):
+        def_hp = self._get_default_hyperparameters()
+        if self._setting_name in def_hp:
+            del def_hp[self._setting_name]
+        def_hp.update(hyperparameters)
+        self.model = SVC(**def_hp)
+
+    def _get_default_hyperparameters(self):
+        raise NotImplementedError()
+
+
+class PolynomialSVM(NonLinearSVM):
+    def _get_default_hyperparameters(self):
+        return {
+            'kernel': 'poly',
+            'degree': 2,
+            'coef0': 10,
+            'C': 1,
+            'gamma': 'scale'
+        }
+
+
+class RadialBasisSVM(NonLinearSVM):
+    def _get_default_hyperparameters(self):
+        return {
+            'kernel': 'rbf',
+            'gamma': 10,
+            'C': 1
+        }
