@@ -216,7 +216,7 @@ class MLModels:
                 methods['Linear SVM (L1)'] = LinearSVM(C, 'l1')
                 methods['Linear SVM (L2)'] = LinearSVM(C, 'l2')
 
-            if algo.intersection({'svc', 'svm'}):
+            if algo.intersection({'nsvc', 'nsvm'}):
                 methods['Polynomial SVM'] = PolynomialSVM({'C': C})
                 methods['RBF SVM'] = RadialBasisSVM({'gamma': C})
 
