@@ -18,7 +18,6 @@ from sklearn.exceptions import ConvergenceWarning
 from IPython.core.display import display
 
 
-# Note: Someone please write the documentation ;)
 class MLModels:
     """
     Creates a class MLModels. 
@@ -162,7 +161,7 @@ class MLModels:
 
     @staticmethod
     def run_classifier(X, labels, feature_names=None, C=None,
-                       n_neighbors=None, scaler=None, algorithm=['all']):
+                       n_neighbors=None, scaler=None, methods='all'):
         """
         Run classifier algorithms on the data provided.
         
@@ -184,58 +183,47 @@ class MLModels:
         scaler : object
             Scaling method to be applied to X
             default : None
-        algorithm : list
+        methods: Union[str, dict]
+            Dictionary of label -> MLModel to execute or a str corresponding
+            to a pre-defined list.
             default : 'all'
-            options : 'knn', 'logistic' or 'logistic regression',
+            str options : 'knn', 'logistic' or 'lr',
              'svc' or 'svm'
             
         Returns
         -------
-        Dictionary of fitted classifiers
+        Dictionary of MLModels
         """
         C = [1e-8, 1e-4, 1e-3, 0.1, 0.2, 0.4, 0.75, 1, 1.5, 3, 5, 10, 15, 20,
              100, 300, 1000, 5000] if C is None else C
         n_nb = list(range(1, 51)) if n_neighbors is None else n_neighbors
         
-        methods = {}
-        
-        if isinstance(algorithm, list):        
-            for algo in algorithm:
-                algo = algo.lower()
-                if algo == 'knn' or algo == 'all':
-                    methods['KNN'] = KNNClassifier(n_nb)
-                if (algo == 'logistic' or algo == 'logistic regression' or
-                        algo == 'all'):
-                    methods['Logistic Regression (L1)'] = LogisticRegressor(
-                        C, 'l1')
-                    methods['Logistic Regression (L2)'] = LogisticRegressor(
-                        C, 'l2')
-                if (algo == 'logistic1' or algo == 'logistic regression1' or
-                        algo == 'all'):
-                    methods['Logistic Regression (L1)'] = LogisticRegressor(
-                        C, 'l1')
-                if (algo == 'logistic2' or algo == 'logistic regression2' or
-                        algo == 'all'):
-                    methods['Logistic Regression (L2)'] = LogisticRegressor(
-                        C, 'l2')
-                if algo == 'svc' or algo == 'svm' or algo == 'all':
-                    methods['SVC (L1)'] = LinearSVM(C, 'l1')
-                    methods['SVC (L2)'] = LinearSVM(C, 'l2')
-                if algo == 'svc1' or algo == 'svm1' or algo == 'all':
-                    methods['SVC (L1)'] = LinearSVM(C, 'l1')
-                if algo == 'svc2' or algo == 'svm2' or algo == 'all':
-                    methods['SVC (L2)'] = LinearSVM(C, 'l2')
-                if algo not in ['all', 'knn', 'logistic',
-                                'logistic regression', 'svc', 'svm']:
-                    print(f'Algorithm {algo} not in options')
+        if isinstance(methods, str):
+            algo = {methods} if methods != 'all' else {'knn', 'lr', 'svc'}
+            methods = {}
 
-            MLModels.plot_pcc(labels)
-            plt.show()
-            return MLModels.__run_models(methods, X, labels, feature_names,
-                                         scaler=scaler)
-        else:
-            print('Algorithms should be in a list')
-        
+            if algo.intersection({'knn'}):
+                methods['KNN'] = KNNClassifier(n_nb)
+
+            if algo.intersection({'logistic', 'lr'}):
+                methods['Logistic Regression (L1)'] =\
+                    LogisticRegressor(C, 'l1')
+                methods['Logistic Regression (L2)'] =\
+                    LogisticRegressor(C, 'l2')
+
+            if algo.intersection({'svc', 'svm'}):
+                methods['Linear SVM (L1)'] = LinearSVM(C, 'l1')
+                methods['Linear SVM (L2)'] = LinearSVM(C, 'l2')
+
+        if not methods:
+            warnings.warn('methods is not a valid value')
+            return
+
+        MLModels.plot_pcc(labels)
+        plt.show()
+        return MLModels.__run_models(methods, X, labels, feature_names,
+                                     scaler=scaler)
+
     @staticmethod
     def plot_pcc(labels):
         """
@@ -272,10 +260,10 @@ class MLModels:
         labels : array-like, shape = [n_samples]
             Target vector relative to X
         feature_names : 
-        C : list
-            List of values of C for Logistic Regression and SVC
-            default : 1e-8, 1e-4, 1e-3, 0.1, 0.2, 0.4, 0.75, 
-                     1, 1.5, 3, 5, 10, 15, 20, 100, 300, 1000, 5000
+        alpha : list
+            List of values of alpha for Linear Regression
+            default : 1e-12, 1e-10, 1e-8, 1e-4, 1e-3,0.1, 0.2, 0.4, 0.75,
+             1, 1.5, 3, 5, 10, 15,  20
         n_neighbors : list
             List of values of number of neighbors for KNN
             default : 1 to 50      

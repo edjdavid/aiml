@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.datasets import load_breast_cancer
-from aiml.models import KNNClassifier, LogisticRegressor
+from aiml.models import KNNClassifier, LogisticRegressor, LinearSVM, MLModels
 
 from numpy.testing import assert_equal
 
@@ -77,3 +77,69 @@ def test_logistic_classifier():
     assert_equal(lr_expected_test_mean, lr.test_accuracy)
     assert_equal(lr_expected_train_std, lr.training_std)
     assert_equal(lr_expected_test_std, lr.test_std)
+
+
+def test_classifier_model_assignment():
+    def noop(*args, **kwargs):
+        pass
+
+    MLModels.train_test = noop
+    MLModels.plot_pcc = noop
+    MLModels.summarize = noop
+
+    models = MLModels.run_classifier(cancer.data, cancer.target,
+                                     cancer.feature_names)
+    assert isinstance(models['KNN'], KNNClassifier)
+    assert isinstance(models['Logistic Regression (L1)'], LogisticRegressor)
+    assert models['Logistic Regression (L1)'].model.penalty == 'l1'
+    assert isinstance(models['Logistic Regression (L2)'], LogisticRegressor)
+    assert models['Logistic Regression (L2)'].model.penalty == 'l2'
+    assert isinstance(models['Linear SVM (L1)'], LinearSVM)
+    assert models['Linear SVM (L1)'].model.penalty == 'l1'
+    assert isinstance(models['Linear SVM (L2)'], LinearSVM)
+    assert models['Linear SVM (L2)'].model.penalty == 'l2'
+
+    models = MLModels.run_classifier(cancer.data, cancer.target,
+                                     cancer.feature_names, methods='knn')
+    assert set(models.keys()) == {'KNN'}
+
+    models = MLModels.run_classifier(cancer.data, cancer.target,
+                                     cancer.feature_names, methods='logistic')
+    assert set(models.keys()) == {'Logistic Regression (L1)',
+                                  'Logistic Regression (L2)'}
+
+    models = MLModels.run_classifier(cancer.data, cancer.target,
+                                     cancer.feature_names, methods='lr')
+    assert set(models.keys()) == {'Logistic Regression (L1)',
+                                  'Logistic Regression (L2)'}
+
+    models = MLModels.run_classifier(cancer.data, cancer.target,
+                                     cancer.feature_names, methods='svm')
+    assert set(models.keys()) == {'Linear SVM (L1)',
+                                  'Linear SVM (L2)'}
+
+    models = MLModels.run_classifier(cancer.data, cancer.target,
+                                     cancer.feature_names, methods='svc')
+    assert set(models.keys()) == {'Linear SVM (L1)',
+                                  'Linear SVM (L2)'}
+
+    custom_methods = {
+        'Nearest Neighbor': KNNClassifier([1]),
+        'Linear SVM': LinearSVM([0.1], 'l2')
+    }
+    custom_models = MLModels.run_classifier(
+        cancer.data, cancer.target, cancer.feature_names,
+        methods=custom_methods)
+    assert len(custom_models.keys()) == 2
+    assert isinstance(custom_models['Nearest Neighbor'], KNNClassifier)
+    assert isinstance(custom_models['Linear SVM'], LinearSVM)
+    assert custom_models['Linear SVM'].model.penalty == 'l2'
+
+    # not valid methods
+    models = MLModels.run_classifier(cancer.data, cancer.target,
+                                     cancer.feature_names, methods='svv')
+    assert models is None
+
+    models = MLModels.run_classifier(cancer.data, cancer.target,
+                                     cancer.feature_names, methods={})
+    assert models is None
