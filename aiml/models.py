@@ -133,6 +133,7 @@ class MLModels:
                 for s in self._setting:
                     # build the model
                     self.model.__setattr__(self._setting_name, s)
+                    self.model.__setattr__('n_jobs', -1)
                     clf = self.model
                     clf.fit(X_train, y_train)
                     # record training set accuracy
@@ -448,7 +449,7 @@ class LinearClassifier(MLModels):
 
 class LogisticRegressor(LinearClassifier):
     def _init_model(self, reg):
-        self.model = LogisticRegression(solver='liblinear', penalty=reg,
+        self.model = LogisticRegression(solver='saga', penalty=reg,
                                         multi_class='auto')
 
 
