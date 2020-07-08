@@ -1,6 +1,6 @@
 ## Install
 ```bash
-git clone git@gitlab.datascience.aim.edu:edavid/aiml.git
+git clone git@github.com:edjdavid/aiml.git
 cd aiml
 pip install -e . --user
 ```
