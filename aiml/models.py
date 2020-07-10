@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import warnings
 
+from collections import defaultdict
 from collections.abc import Sequence
 from tqdm.autonotebook import tqdm
 
@@ -35,10 +36,6 @@ class MLModels:
     random_state: int
         default : None
         
-    pred_var_setting: float
-        default : 0.01
-        
-        
     Methods
     --------
     plot_accuracy : Plots and returns model train and test accuracies
@@ -58,7 +55,6 @@ class MLModels:
     n_trials = 50
     test_size = 0.25
     random_state = None
-    pred_var_setting = 0.01
 
     # not so safe to change
     model = None
@@ -110,9 +106,8 @@ class MLModels:
         """
         train_accuracies = []
         test_accuracies = []
-        if self.pred_var_setting is not None:
-            self._setting = sorted(list(set(self._setting)
-                                        .union({self.pred_var_setting})))
+        has_coef = True
+        coef = defaultdict(lambda: np.array([np.nan] * X.shape[1]).reshape(1, -1))
 
         rs = (np.random.RandomState(seed=self.random_state) if
               self.random_state else None)
@@ -140,11 +135,12 @@ class MLModels:
                     training_accuracy.append(clf.score(X_train, y_train))
                     # record generalization accuracy
                     test_accuracy.append(clf.score(X_test, y_test))
-                    if s == self.pred_var_setting:
+                    # FIXME this should correspond to the best hyperparameters
+                    if has_coef:
                         try:
-                            feature_coef.append(clf.coef_)
+                            coef[s] = np.nanmean([coef[s], clf.coef_], axis=0)
                         except AttributeError:
-                            pass
+                            has_coef = False
                     pb.update(1)
 
                 train_accuracies.append(training_accuracy)
@@ -154,8 +150,8 @@ class MLModels:
         self.test_accuracy = np.mean(test_accuracies, axis=0)
         self.training_std = np.std(train_accuracies, axis=0)
         self.test_std = np.std(test_accuracies, axis=0)
-        if feature_coef:
-            self.coef = np.mean(feature_coef, axis=0)
+        if has_coef:
+            self.coef = coef[np.argmax(self.test_accuracy)]
             try:
                 self.classes = clf.classes_
             except AttributeError:
@@ -402,7 +398,6 @@ class MLModels:
 
 class KNN(MLModels):
     _setting_name = 'n_neighbors'
-    pred_var_setting = None
 
     def __init__(self, neighbor_setting):
         super().__init__()

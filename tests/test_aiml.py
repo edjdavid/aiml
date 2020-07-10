@@ -48,24 +48,23 @@ def test_logistic_classifier():
     lr_expected_test_std = []
     rs = np.random.RandomState(1)
     C = [0.01]
-    for c in C:
-        train_acc = []
-        test_acc = []
-        for i in range(2):
-            (X_train, X_test, y_train,
-             y_test) = train_test_split(cancer.data, cancer.target,
-                                        test_size=0.70, random_state=rs)
-            model = LogisticRegression(C=c, solver='liblinear',
-                                       penalty='l2', multi_class='auto')
-            model.fit(X_train, y_train)
+    train_acc = []
+    test_acc = []
+    for i in range(2):
+        (X_train, X_test, y_train,
+            y_test) = train_test_split(cancer.data, cancer.target,
+                                    test_size=0.70, random_state=rs)
+        model = LogisticRegression(C=C[0], solver='saga',
+                                    penalty='l2', multi_class='auto')
+        model.fit(X_train, y_train)
 
-            train_acc.append(model.score(X_train, y_train))
-            test_acc.append(model.score(X_test, y_test))
+        train_acc.append(model.score(X_train, y_train))
+        test_acc.append(model.score(X_test, y_test))
 
-        lr_expected_train_mean.append(np.mean(train_acc))
-        lr_expected_test_mean.append(np.mean(test_acc))
-        lr_expected_train_std.append(np.std(train_acc))
-        lr_expected_test_std.append(np.std(test_acc))
+    lr_expected_train_mean.append(np.mean(train_acc))
+    lr_expected_test_mean.append(np.mean(test_acc))
+    lr_expected_train_std.append(np.std(train_acc))
+    lr_expected_test_std.append(np.std(test_acc))
 
     lr = LogisticRegressor(C)
     lr.n_trials = 2
