@@ -6,7 +6,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.datasets import load_breast_cancer
 from aiml.models import KNNClassifier, LogisticRegressor, LinearSVM, MLModels
 
-from numpy.testing import assert_equal
+from numpy.testing import assert_equal, assert_almost_equal, assert_raises
 
 cancer = load_breast_cancer()
 
@@ -50,21 +50,27 @@ def test_logistic_classifier():
     C = [0.01]
     train_acc = []
     test_acc = []
+    coef = []
     for i in range(2):
         (X_train, X_test, y_train,
             y_test) = train_test_split(cancer.data, cancer.target,
                                     test_size=0.70, random_state=rs)
         model = LogisticRegression(C=C[0], solver='saga',
-                                    penalty='l2', multi_class='auto')
+                                    penalty='l2', multi_class='auto', random_state=rs)
         model.fit(X_train, y_train)
 
         train_acc.append(model.score(X_train, y_train))
         test_acc.append(model.score(X_test, y_test))
+        coef.append(model.coef_)
 
+    # check that the coefficients from different runs are not the same
+    with assert_raises(AssertionError):
+        assert_almost_equal(coef[0], coef[1])
     lr_expected_train_mean.append(np.mean(train_acc))
     lr_expected_test_mean.append(np.mean(test_acc))
     lr_expected_train_std.append(np.std(train_acc))
     lr_expected_test_std.append(np.std(test_acc))
+    lr_expected_coef = np.mean(coef, axis=0)
 
     lr = LogisticRegressor(C)
     lr.n_trials = 2
@@ -72,6 +78,7 @@ def test_logistic_classifier():
     lr.test_size = 0.70
     lr.train_test(cancer.data, cancer.target)
 
+    assert_almost_equal(lr_expected_coef, lr.coef)
     assert_equal(lr_expected_train_mean, lr.training_accuracy)
     assert_equal(lr_expected_test_mean, lr.test_accuracy)
     assert_equal(lr_expected_train_std, lr.training_std)

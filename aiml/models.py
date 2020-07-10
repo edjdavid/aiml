@@ -128,7 +128,9 @@ class MLModels:
                 for s in self._setting:
                     # build the model
                     self.model.__setattr__(self._setting_name, s)
+                    self.model.__setattr__('random_state', rs)
                     self.model.__setattr__('n_jobs', -1)
+
                     clf = self.model
                     clf.fit(X_train, y_train)
                     # record training set accuracy
@@ -150,8 +152,9 @@ class MLModels:
         self.test_accuracy = np.mean(test_accuracies, axis=0)
         self.training_std = np.std(train_accuracies, axis=0)
         self.test_std = np.std(test_accuracies, axis=0)
+
         if has_coef:
-            self.coef = coef[np.argmax(self.test_accuracy)]
+            self.coef = coef[self._setting[np.argmax(self.test_accuracy)]]
             try:
                 self.classes = clf.classes_
             except AttributeError:
