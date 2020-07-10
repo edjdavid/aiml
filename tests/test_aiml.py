@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.datasets import load_breast_cancer
-from aiml.models import KNNClassifier, LogisticRegressor, LinearSVM, MLModels
+from aiml.models import KNNClassifier, LogisticRegressor, LinearSVM, MLModels, LassoRegressor
 
 from numpy.testing import assert_equal, assert_almost_equal, assert_raises
 
@@ -84,6 +84,12 @@ def test_logistic_classifier():
     assert_equal(lr_expected_train_std, lr.training_std)
     assert_equal(lr_expected_test_std, lr.test_std)
 
+def test_regression_model():
+    lr = LassoRegressor(alpha=[1e-12])
+    lr.n_trials = 2
+    lr.random_state = 1
+    lr.test_size = 0.70
+    lr.train_test(cancer.data, cancer.target)
 
 def test_classifier_model_assignment():
     def noop(*args, **kwargs):

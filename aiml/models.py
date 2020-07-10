@@ -107,7 +107,7 @@ class MLModels:
         train_accuracies = []
         test_accuracies = []
         has_coef = True
-        coef = defaultdict(lambda: np.array([np.nan] * X.shape[1]).reshape(1, -1))
+        coef = defaultdict(lambda: np.array([np.nan] * X.shape[1]))
 
         rs = (np.random.RandomState(seed=self.random_state) if
               self.random_state else None)
@@ -137,10 +137,10 @@ class MLModels:
                     training_accuracy.append(clf.score(X_train, y_train))
                     # record generalization accuracy
                     test_accuracy.append(clf.score(X_test, y_test))
-                    # FIXME this should correspond to the best hyperparameters
                     if has_coef:
                         try:
-                            coef[s] = np.nanmean([coef[s], clf.coef_], axis=0)
+                            # classifiers have (1, N), while regressors have (N, )
+                            coef[s] = np.nanmean([coef[s].reshape(clf.coef_.shape), clf.coef_], axis=0)
                         except AttributeError:
                             has_coef = False
                     pb.update(1)
@@ -308,7 +308,7 @@ class MLModels:
                         == 'all'):
                     methods['Linear Regression (L2)'] = RidgeRegressor(
                         alpha=alpha)
-                if algo not in ['all', 'knn', 'linear', 'linear regression']:
+                if len(methods.keys()) == 0:
                     print(f'method {algo} not in options')
 
             return MLModels.__run_models(methods, X, labels, feature_names,
